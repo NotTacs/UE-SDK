@@ -1,0 +1,15 @@
+#pragma once
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <iostream>
+#include <thread>
+#include <string>
+#include <cstring>
+#include <memory>
+#include <type_traits>
+#include <fstream>
+#include <sstream>
+#include <mutex>
+#include <iomanip>
+#include <vector>
+#include "SDK/SDK.h"
