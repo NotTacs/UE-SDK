@@ -110,7 +110,10 @@ namespace SDK
 	public:
 		void** VTable;
 	public:
-
+		FORCEINLINE EObjectFlags& GetFlags()
+		{
+			return ObjectFlags;
+		}
 		/**
 		* Returns the unique ID of the object...these are reused so it is only unique while the object is alive
 		* Useful as a tag.
@@ -150,6 +153,12 @@ namespace SDK
 
 	class UObjectBaseUtility : public UObjectBase
 	{
+	private:
+		template<typename ClassType>
+		static FORCEINLINE bool IsChildOfWorkaround(const ClassType* ObjClass, const ClassType* TestCls)
+		{
+			return ObjClass->IsChildOf(TestCls);
+		}
 	public:
 		FORCEINLINE FString GetName()
 		{
@@ -160,6 +169,23 @@ namespace SDK
 		{
 			GetFName().ToString(ResultString);
 		}
+
+		template<typename OtherClassType>
+		FORCEINLINE bool IsA(OtherClassType SomeBase) const
+		{
+			const UClass* SomeBaseClass = SomeBase;
+			const UClass* ThisClass = GetClass();
+
+			return IsChildOfWorkaround(ThisClass, SomeBaseClass);
+		}
+
+		template<typename Class>
+		bool IsA() const
+		{
+			return IsA(Class::StaticClass());
+		}
+
+		bool IsDefaultObject();
 	};
 
 	class UObject : public UObjectBaseUtility
@@ -177,15 +203,15 @@ namespace SDK
 	class UStruct : public UField
 	{
 	public:
-		UStruct* SuperStruct();
-		UField* Children();
-		int32 Size();
-		int32 MinAlignment();
-		TArray<uint8_t>& Script();
-		UProperty* PropertyLink();
-		UProperty* RefLink();
-		UProperty* DestructorLink();
-		UProperty* PostConstructLink();
+		UStruct* SuperStruct() const;
+		UField* Children() const;
+		int32 Size() const;
+		int32 MinAlignment() const;
+		TArray<uint8_t>& Script() const;
+		UProperty* PropertyLink() const;
+		UProperty* RefLink() const;
+		UProperty* DestructorLink() const;
+		UProperty* PostConstructLink() const;
 
 	public:
 		UProperty* FindPropertyByName(std::string PropertyName);
@@ -205,6 +231,8 @@ namespace SDK
 	{
 	public:
 		UObject* GetDefaultObj();
+	public:
+		bool IsChildOf(const UStruct* Base) const;
 	};
 
 	class UFunction : public UStruct
