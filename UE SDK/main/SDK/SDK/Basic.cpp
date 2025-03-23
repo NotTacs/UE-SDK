@@ -197,14 +197,16 @@ SDK::UObject* SDK::FUObjectArray::FindObjectFast(std::string Name)
 }
 SDK::UFunction* SDK::UStruct::FindFunctionByName(std::string FunctionName)
 {
-	for (UField* Next = this->Children(); Next != nullptr; Next = Next->Next())
+	for (const UStruct* Class = this; Class; Class = Class->SuperStruct())
 	{
-		if (!Next->GetClass()) continue;
-		if (Next->GetClass() != SDK::UE::Core::GObjects->FindObjectFast("Default__Function")->GetClass()) continue;
-
-		if (Next->GetName() == FunctionName)
+		for (UField* Next = Class->Children(); Next != nullptr; Next = Next->Next())
 		{
-			return reinterpret_cast<UFunction*>(Next);
+			if (!Next->GetClass()) continue;
+			if (Next->GetClass() != SDK::UE::Core::GObjects->FindObjectFast("Function")) continue;
+			if (Next->GetName() == FunctionName)
+			{
+				return reinterpret_cast<UFunction*>(Next);
+			}
 		}
 	}
 
@@ -240,6 +242,45 @@ bool SDK::UClass::IsChildOf(const SDK::UStruct* Base) const
 	{
 		if (Struct == Base)
 			return true;
+	}
+
+	return false;
+}
+
+SDK::uint8 SDK::UBoolProperty::FieldMask()
+{
+	if (SDK::UE::GetEngineVersion() <= 4.24 || SDK::UE::GetFortniteVersion() >= 20)
+		return *(uint8_t*)(__int64(this) + (112 + 3));
+	else if (SDK::UE::GetEngineVersion() >= 4.25)
+		return *(uint8_t*)(__int64(this) + (120 + 3));
+}
+
+bool SDK::UBoolProperty::ReadBitFieldValue(UObject* Object)
+{
+	auto Addr = (void*)((PlaceholderBitfield*)(__int64(Object) + this->Offset_Internal()));
+
+	auto BitField = (PlaceholderBitfield*)Addr;
+
+	switch (FieldMask())
+	{
+	case 0x1:
+		return BitField->First;
+	case 0x2:
+		return BitField->Second;
+	case 0x4:
+		return BitField->Third;
+	case 0x8:
+		return BitField->Fourth;
+	case 0x10:
+		return BitField->Fifth;
+	case 0x20:
+		return BitField->Sixth;
+	case 0x40:
+		return BitField->Seventh;
+	case 0x80:
+		return BitField->Eighth;
+	case 0xFF:
+		return *(bool*)BitField;
 	}
 
 	return false;

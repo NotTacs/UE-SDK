@@ -16,6 +16,18 @@ namespace SDK
 
 	};
 
+	struct PlaceholderBitfield
+	{
+		uint8_t First : 1;
+		uint8_t Second : 1;
+		uint8_t Third : 1;
+		uint8_t Fourth : 1;
+		uint8_t Fifth : 1;
+		uint8_t Sixth : 1;
+		uint8_t Seventh : 1;
+		uint8_t Eighth : 1;
+	};
+
 	enum EObjectFlags
 	{
 		F_NoFlags = 0x00000000,
@@ -225,6 +237,13 @@ namespace SDK
 		UProperty* PropertyLinkNext();
 	public:
 		std::string GetPropName();
+	};
+
+	class UBoolProperty : public UProperty
+	{
+	public:
+		uint8 FieldMask();
+		bool ReadBitFieldValue(UObject* Object);
 	};
 
 	class UClass : public UStruct
