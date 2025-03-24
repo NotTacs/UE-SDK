@@ -14,6 +14,7 @@ namespace SDK
 	class UGameViewportClient : public UObject
 	{
 	public:
+		UWorld* World();
 	};
 
 	class UWorld : public UObject
