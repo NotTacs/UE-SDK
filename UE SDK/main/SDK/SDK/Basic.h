@@ -612,5 +612,34 @@ namespace SDK
 
 		UObject* FindObjectFast(std::string Name);
 	};
+
+	template <typename T = UObject*>
+	T GET_PROPERTY_VALUE(SDK::UObject* Object, const char* PropertyName)
+	{
+		static std::unordered_map<std::string, int> OffsetCache;
+
+		if (!Object) return T();
+
+		std::string Key = Object->GetClass()->GetName().ToString() + "::" + PropertyName;
+
+		int Offset = -1;
+		auto It = OffsetCache.find(Key);
+		if (It != OffsetCache.end())
+		{
+			Offset = It->second;
+		}
+		else
+		{
+			auto Property = Object->GetClass()->FindPropertyByName(PropertyName);
+			if (!Property) return T();
+
+			Offset = Property->Offset_Internal();
+			if (Offset <= 0) return T();
+
+			OffsetCache[Key] = Offset;
+		}
+
+		return *reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(Object) + Offset);
+	}
 }
 

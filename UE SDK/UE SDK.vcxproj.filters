@@ -33,6 +33,9 @@
     <ClInclude Include="main\SDK\SDK\Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="main\SDK\SDK\Fortnite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main\main.cpp">
@@ -45,6 +48,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main\SDK\SDK\Engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main\SDK\SDK\Fortnite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

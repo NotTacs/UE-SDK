@@ -11,9 +11,11 @@
 #include <mutex>
 #include <iomanip>
 #include <vector>
+#include <unordered_map>
 #include "../memcury.h"
 #include "SDK/Basic.h"
 #include "SDK/Engine.h"
+#include "SDK/Fortnite.h"
 
 namespace SDK
 {

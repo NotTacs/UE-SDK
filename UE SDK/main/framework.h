@@ -12,4 +12,5 @@
 #include <mutex>
 #include <iomanip>
 #include <vector>
+#include <unordered_map>
 #include "SDK/SDK.h"

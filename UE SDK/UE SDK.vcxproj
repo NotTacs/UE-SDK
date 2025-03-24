@@ -90,6 +90,7 @@
     <ClInclude Include="main\SDK\SDK.h" />
     <ClInclude Include="main\SDK\SDK\Basic.h" />
     <ClInclude Include="main\SDK\SDK\Engine.h" />
+    <ClInclude Include="main\SDK\SDK\Fortnite.h" />
     <ClInclude Include="main\SDK\UnrealContainers.h" />
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +98,7 @@
     <ClCompile Include="main\SDK\SDK.cpp" />
     <ClCompile Include="main\SDK\SDK\Basic.cpp" />
     <ClCompile Include="main\SDK\SDK\Engine.cpp" />
+    <ClCompile Include="main\SDK\SDK\Fortnite.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
