@@ -9,9 +9,12 @@ DWORD WINAPI Main(LPVOID lpParam)
     if (!SDK::Init())
     {
         std::cout << "Failed to initalize core aspects of the SDK" << std::endl;
+        return 1;
     }
 
-
+    std::cout << "Engine_Version: " << SDK::UE::GetEngineVersion() << std::endl;
+    std::cout << "Fortnite_Version: " << SDK::UE::GetFortniteVersion() << std::endl;
+    std::cout << "Fortnite_CL: " << SDK::UE::GetFortniteCL() << std::endl;
 
     return 0;
 }

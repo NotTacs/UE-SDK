@@ -80,50 +80,50 @@ SDK::UStruct* SDK::UStruct::SuperStruct() const
 
 SDK::UField* SDK::UStruct::Children() const
 {
-	static int ChildrenOffset = SDK::Addresses::MemberOffsets::UStruct__Children;
+	static int ChildrenOffset = SDK::Addresses::MemberOffsets::UStruct_Children;
 	return *reinterpret_cast<UField**>(__int64(this) + ChildrenOffset);
 }
 
 SDK::int32 SDK::UStruct::Size() const
 {
-	static int SizeOffset = SDK::Addresses::MemberOffsets::UStruct__Children + 0x8;
+	static int SizeOffset = SDK::Addresses::MemberOffsets::UStruct_Children + 0x8;
 	return *reinterpret_cast<int32*>(__int64(this) + SizeOffset);
 }
 
 SDK::int32 SDK::UStruct::MinAlignment() const 
 {
-	static int MinAlignmentOffset = SDK::Addresses::MemberOffsets::UStruct__MinAllignment;
+	static int MinAlignmentOffset = SDK::Addresses::MemberOffsets::UStruct_MinAllignment;
 	return *reinterpret_cast<int32*>(__int64(this) + MinAlignmentOffset);
 }
 
 SDK::TArray<uint8_t>& SDK::UStruct::Script() const
 {
-	return *reinterpret_cast<TArray<uint8>*>(__int64(this) + SDK::Addresses::MemberOffsets::UStruct__Script);
+	return *reinterpret_cast<TArray<uint8>*>(__int64(this) + SDK::Addresses::MemberOffsets::UStruct_Script);
 }
 
 SDK::UProperty* SDK::UStruct::PropertyLink() const
 {
-	static int PropertyLinkOffset = SDK::Addresses::MemberOffsets::UStruct__PropertyLink;
+	static int PropertyLinkOffset = SDK::Addresses::MemberOffsets::UStruct_PropertyLink;
 
 	return *reinterpret_cast<UProperty**>(__int64(this) + PropertyLinkOffset);
 }
 
 SDK::UProperty* SDK::UStruct::RefLink() const
 {
-	static int NextRef = SDK::Addresses::MemberOffsets::UStruct__RefLink;
+	static int NextRef = SDK::Addresses::MemberOffsets::UStruct_RefLink;
 
 	return *reinterpret_cast<UProperty**>(__int64(this) + NextRef);
 }
 
 SDK::UProperty* SDK::UStruct::DestructorLink() const
 {
-	static int DestructorLinkOffset = SDK::Addresses::MemberOffsets::UStruct__DestructorLink;
+	static int DestructorLinkOffset = SDK::Addresses::MemberOffsets::UStruct_DestructorLink;
 	return *reinterpret_cast<UProperty**>(__int64(this) + DestructorLinkOffset);
 }
 
 SDK::UProperty* SDK::UStruct::PostConstructLink() const
 {
-	static int PostConstructLinkOffset = SDK::Addresses::MemberOffsets::UStruct__PostConstructLink;
+	static int PostConstructLinkOffset = SDK::Addresses::MemberOffsets::UStruct_PostConstructLink;
 	return *reinterpret_cast<UProperty**>(__int64(this) + PostConstructLinkOffset);
 }
 
@@ -215,7 +215,7 @@ SDK::UFunction* SDK::UStruct::FindFunctionByName(std::string FunctionName)
 
 SDK::UFunction::FNativeFuncPtr& SDK::UFunction::Func()
 {
-	return *reinterpret_cast<FNativeFuncPtr*>(__int64(this) + SDK::Addresses::UFunction__Func);
+	return *reinterpret_cast<FNativeFuncPtr*>(__int64(this) + SDK::Addresses::MemberOffsets::UFunction__Func);
 }
 
 SDK::UObject* SDK::UClass::GetDefaultObj()

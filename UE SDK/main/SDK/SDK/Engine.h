@@ -9,6 +9,8 @@ namespace SDK
 	{
 	public:
 		UGameViewportClient* GameViewport();
+	public:
+		static UEngine* GetEngine();
 	};
 
 	class UGameViewportClient : public UObject

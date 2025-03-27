@@ -1,24 +1,8 @@
 #include "SDK.h"
 
-bool SDK::Init()
+bool SDK::InitGObjects()
 {
-	Memcury::Scanner Scanner = Memcury::Scanner::FindPattern("FF 95 ? ? ? ? 48 8B 6C 24");
-
-	if (Scanner.Get() == 0)
-	{
-		Scanner = Memcury::Scanner::FindPattern("FF 97 ? ? ? ? 48 8B 6C 24");
-
-		if (Scanner.Get() == 0)
-		{
-			Scanner = Memcury::Scanner::FindPattern("FF 95 ? ? ? ? 48 8B 6C 24", true);
-		}
-	}
-
-	SDK::Addresses::UFunction__Func = *Scanner.AbsoluteOffset(2).GetAs<int*>();
-
-	std::cout << "UFunction::Func Offset: " << SDK::Addresses::UFunction__Func << std::endl;
-
-	Scanner = Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8B 04 D1");
+	Memcury::Scanner Scanner = Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8B 04 D1");
 
 	bool bChunked = true;
 
@@ -43,8 +27,6 @@ bool SDK::Init()
 		return false;
 	}
 
-	std::cout << SDK::Addresses::ObjObjectsAddr - SDK::GameInfo::GetBaseAddress() << std::endl;
-
 	try
 	{
 		SDK::UE::Core::GObjects = std::make_unique<FUObjectArray>(SDK::Addresses::ObjObjectsAddr, bChunked);
@@ -60,7 +42,44 @@ bool SDK::Init()
 		return false;
 	}
 
-	Scanner = Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 7C 24 ? ? 48 8D 3D ? ? ? ? 48 8B EF 48 8D 8E");
+	return true;
+}
+
+bool SDK::InitMemberOffsets()
+{
+	Memcury::Scanner Scanner = Memcury::Scanner::FindPattern("FF 95 ? ? ? ? 48 8B 6C 24");
+
+	if (Scanner.Get() == 0)
+	{
+		Scanner = Memcury::Scanner::FindPattern("FF 97 ? ? ? ? 48 8B 6C 24");
+
+		if (Scanner.Get() == 0)
+		{
+			Scanner = Memcury::Scanner::FindPattern("FF 95 ? ? ? ? 48 8B 6C 24", true);
+		}
+	}
+
+	if (Scanner.Get() != 0)
+		return false;
+
+	Addresses::MemberOffsets::UFunction__Func = *Scanner.AbsoluteOffset(2).GetAs<int*>();
+	Addresses::MemberOffsets::UStruct__SuperStruct = SDK::UE::GetEngineVersion() >= 4.22 ? 0x40 : 0x30;
+	Addresses::MemberOffsets::UStruct_Children = Addresses::MemberOffsets::UStruct__SuperStruct + 0x8;
+	Addresses::MemberOffsets::UStruct_MinAllignment = Addresses::MemberOffsets::UStruct_Children + 0xC;
+	Addresses::MemberOffsets::UStruct_Script = Addresses::MemberOffsets::UStruct_Children + 0x10;
+	Addresses::MemberOffsets::UStruct_PropertyLink = Addresses::MemberOffsets::UStruct__SuperStruct + 0x30;
+	Addresses::MemberOffsets::UStruct_RefLink = Addresses::MemberOffsets::UStruct_PropertyLink + 0x8;
+	Addresses::MemberOffsets::UStruct_DestructorLink = Addresses::MemberOffsets::UStruct_RefLink + 0x8;
+	Addresses::MemberOffsets::UStruct_PostConstructLink = Addresses::MemberOffsets::UStruct_DestructorLink + 0x8;
+	Addresses::MemberOffsets::UStruct_ScriptObjectReferences = Addresses::MemberOffsets::UStruct_PostConstructLink + 0x8;
+	Addresses::MemberOffsets::UProperty__Offset_Internal = SDK::UE::GetFortniteVersion() >= 12.10 && std::floor(SDK::UE::GetFortniteVersion()) > 20 ? 0x4C : 0x44;
+
+	return true;
+}
+
+bool SDK::InitFName()
+{
+	Memcury::Scanner Scanner = Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 7C 24 ? ? 48 8D 3D ? ? ? ? 48 8B EF 48 8D 8E");
 
 	if (Scanner.Get() == 0)
 	{
@@ -69,8 +88,6 @@ bool SDK::Init()
 
 	if (Scanner.Get() != 0)
 		SDK::Addresses::FName__ToString = Scanner.RelativeOffset(1).Get();
-
-	
 
 	if (SDK::Addresses::FName__ToString == 0)
 	{
@@ -89,120 +106,68 @@ bool SDK::Init()
 		return false;
 	}
 
-	
+	return true;
+}
 
+bool SDK::SetupEngineVersion()
+{
 	UFunction* GetEngineVersionFN = reinterpret_cast<UFunction*>(SDK::UE::Core::GObjects->FindObjectFast("GetEngineVersion"));
 
-	std::cout << uintptr_t(GetEngineVersionFN->Func()) - SDK::GameInfo::GetBaseAddress() << std::endl;
+	Memcury::Scanner Scanner = Memcury::Scanner(uintptr_t(GetEngineVersionFN->Func())).ScanFor({ 0xE8 });
 
-	Scanner = Memcury::Scanner(uintptr_t(GetEngineVersionFN->Func())).ScanFor({ 0xE8 });
+	if (!Scanner.Get())
+		return false;
+
+	static FString& (*GetEngineVersion)(FString & retstr) = decltype(GetEngineVersion)(Scanner.RelativeOffset(1).Get());
+
+	FString TempString = GetEngineVersion(TempString);
+
+	SDK::UE::EngineVersion = TempString.ToString();
+
+	return true;
+}
+
+bool SDK::InitProcessEvent()
+{
+	Memcury::Scanner Scanner = Memcury::Scanner::FindPattern("41 FF 92 ? ? ? ? F6 C3", true);
 
 	if (Scanner.Get())
 	{
-		static FString& (*GetEngineVersion)(FString & retstr) = decltype(GetEngineVersion)(Scanner.RelativeOffset(1).Get());
-
-		FString TempString = GetEngineVersion(TempString);
-		SDK::UE::EngineVersion = TempString.ToString();
-		std::cout << SDK::UE::EngineVersion << std::endl;
+		SDK::Addresses::UObject__ProcessEvent = Scanner.ScanFor({ 0x40, 0x55 }, false).Get();
 	}
 	else
+		return false;
+
+	return true;
+}
+
+bool SDK::Init()
+{
+	if (!InitGObjects())
 	{
-		std::cout << "Failed to fetch Engine Version." << std::endl;
+		std::cout << "Failed to initalize GObjects" << std::endl;
 		return false;
 	}
-
-	std::cout << "Engine_Version: " << SDK::UE::GetEngineVersion() << std::endl;
-	std::cout << "Fortnite_Version: " << SDK::UE::GetFortniteVersion() << std::endl;
-	std::cout << "Fortnite_CL: " << SDK::UE::GetFortniteCL() << std::endl;
-
-	Addresses::MemberOffsets::UStruct__SuperStruct = SDK::UE::GetEngineVersion() >= 4.22 ? 0x40 : 0x30;
-	Addresses::MemberOffsets::UStruct__Children = Addresses::MemberOffsets::UStruct__SuperStruct + 0x8;
-	Addresses::MemberOffsets::UStruct__MinAllignment = Addresses::MemberOffsets::UStruct__Children + 0xC;
-	Addresses::MemberOffsets::UStruct__Script = Addresses::MemberOffsets::UStruct__Children + 0x10;
-	Addresses::MemberOffsets::UStruct__PropertyLink = Addresses::MemberOffsets::UStruct__SuperStruct + 0x30;
-	Addresses::MemberOffsets::UStruct__RefLink = Addresses::MemberOffsets::UStruct__PropertyLink + 0x8;
-	Addresses::MemberOffsets::UStruct__DestructorLink = Addresses::MemberOffsets::UStruct__RefLink + 0x8;
-	Addresses::MemberOffsets::UStruct__PostConstructLink = Addresses::MemberOffsets::UStruct__DestructorLink + 0x8;
-	Addresses::MemberOffsets::UStruct__ScriptObjectReferences = Addresses::MemberOffsets::UStruct__PostConstructLink + 0x8;
-
-	SDK::Addresses::MemberOffsets::UProperty__Offset_Internal = SDK::UE::GetFortniteVersion() >= 12.10 && std::floor(SDK::UE::GetFortniteVersion()) > 20 ? 0x4C : 0x44;
-
-	Scanner = Memcury::Scanner::FindPattern("41 FF 92 ? ? ? ? F6 C3", true);
-
-	if (Scanner.Get())
+	if (!InitMemberOffsets())
 	{
-		SDK::Addresses::UObject__ProcessEvent = Scanner.ScanFor({ 0x40, 0x55 },false).Get();
-
-		std::cout << SDK::Addresses::UObject__ProcessEvent - SDK::GameInfo::GetBaseAddress() << std::endl;
-	}
-
-	UEngine* Engine = nullptr;
-	UObject* KismetSystemLibrary = nullptr;
-
-	for (FUObjectItem* Object : *SDK::UE::Core::GObjects)
-	{
-		if (!Object) continue;
-
-		if (!Object->Object) continue;
-
-		if (Object->Object->GetName().ToString().contains("FortEngine_"))
-		{
-			Engine = (UEngine*)Object->Object;
-		}
-
-		if (Object->Object->GetName() == "Default__KismetSystemLibrary")
-		{
-			KismetSystemLibrary = Object->Object;
-		}
-	}
-
-	if (!Engine)
-	{
+		std::cout << "Failed to initalize MemberOffsets" << std::endl;
 		return false;
 	}
-
-	std::cout << Engine->GetName() << std::endl;
-
-	auto GameViewportOffset = Engine->GetClass()->FindPropertyByName("GameViewport")->Offset_Internal();
-	if (GameViewportOffset != 0)
+	if (!InitFName())
 	{
-		auto& GameViewport = *reinterpret_cast<UObject**>(__int64(Engine) + GameViewportOffset);
-
-		std::cout << GameViewport->GetName().ToString() << std::endl;
-
-		auto WorldOffset = GameViewport->GetClass()->FindPropertyByName("World")->Offset_Internal();
-
-		struct GameplayStatics_SpawnObject
-		{
-			UClass* ObjectClass;
-			UObject* Outer;
-			UObject* ReturnValue;
-		};
-
-		GameplayStatics_SpawnObject SpawnObjectParams;
-
-		SDK::UObject* Object2 = SDK::UE::Core::GObjects->FindObjectFast("Default__GameplayStatics");
-
-		SDK::UFunction* Func = Object2->GetClass()->FindFunctionByName("SpawnObject");
-
-		if (Func)
-		{
-			std::cout << "Valid" << std::endl;
-		}
-
-		SDK::UClass* ObjectClass = reinterpret_cast<SDK::UClass*>(SDK::UE::Core::GObjects->FindObjectFast("FortConsole"));
-
-		SpawnObjectParams.ObjectClass = ObjectClass;
-		SpawnObjectParams.Outer = GameViewport;
-
-		Object2->ProcessEvent(Func, &SpawnObjectParams);
-
-		auto ViewportConsoleOffset = GameViewport->GetClass()->FindPropertyByName("ViewportConsole")->Offset_Internal();
-
-		*(SDK::UObject**)(__int64(GameViewport) + ViewportConsoleOffset) = SpawnObjectParams.ReturnValue;
+		std::cout << "Failed to initalize FName" << std::endl;
+		return false;
 	}
-
-
+	if (!SetupEngineVersion())
+	{
+		std::cout << "Failed to initalize EngineVersion" << std::endl;
+		return false;
+	}
+	if (!InitProcessEvent())
+	{
+		std::cout << "Failed to initalize ProcessEvent" << std::endl;
+		return false;
+	}
 
 	return true;
 }
@@ -275,11 +240,4 @@ int SDK::UE::GetFortniteCL()
 	}
 
 	return std::stoi(ParsedString);
-}
-
-bool SDK::UE::Memory::IsOffsetValid(uintptr_t Address)
-{
-	uintptr_t baseAddress = SDK::GameInfo::GetBaseAddress();
-	uintptr_t maxAddress = baseAddress + SDK::GameInfo::GetMemorySize();
-	return (Address >= baseAddress && Address < maxAddress);
 }
