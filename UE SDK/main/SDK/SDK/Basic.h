@@ -611,6 +611,8 @@ namespace SDK
 		int32 Num() const;
 
 		UObject* FindObjectFast(std::string Name);
+
+		std::vector<UObject*> GetObjectsOfClass(UClass* Class);
 	};
 
 	struct FSoftObjectPath
@@ -676,6 +678,37 @@ namespace SDK
 
 			Offset = Property->Offset_Internal();
 			if (Offset <= 0) return T();
+
+			OffsetCache[Key] = Offset;
+		}
+
+		return *reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(Object) + Offset);
+	}
+
+	template <typename T>
+	T& GET_PROPERTY_VALUEREF(SDK::UObject* Object, const char* PropertyName)
+	{
+		static std::unordered_map<std::string, int> OffsetCache;
+
+		T* Value = nullptr;
+
+		if (!Object) return *Value;
+
+		std::string Key = Object->GetClass()->GetName().ToString() + "::" + PropertyName;
+
+		int Offset = -1;
+		auto It = OffsetCache.find(Key);
+		if (It != OffsetCache.end())
+		{
+			Offset = It->second;
+		}
+		else
+		{
+			auto Property = Object->GetClass()->FindPropertyByName(PropertyName);
+			if (!Property) return *Value;
+
+			Offset = Property->Offset_Internal();
+			if (Offset <= 0) return *Value;
 
 			OffsetCache[Key] = Offset;
 		}

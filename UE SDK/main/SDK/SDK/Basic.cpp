@@ -51,6 +51,21 @@ SDK::int32 SDK::FUObjectArray::Num() const
 	return 0;
 }
 
+std::vector<SDK::UObject*> SDK::FUObjectArray::GetObjectsOfClass(UClass* Class)
+{
+	std::vector<UObject*> Objects;
+	for (int i = 0; i < Num(); i++)
+	{
+		UObject* Object = GetObjectPtr(i)->Object;
+		if (!Object) continue;
+		if (Object->IsA(Class))
+		{
+			Objects.push_back(Object);
+		}
+	}
+	return Objects;
+}
+
 SDK::FString SDK::FName::ToString() const
 {
 	static FString& (*FName__ToString)(const FName * thisPtr, FString & retstr) = nullptr;
