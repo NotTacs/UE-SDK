@@ -47,22 +47,6 @@ bool SDK::InitGObjects()
 
 bool SDK::InitMemberOffsets()
 {
-	Memcury::Scanner Scanner = Memcury::Scanner::FindPattern("FF 95 ? ? ? ? 48 8B 6C 24");
-
-	if (Scanner.Get() == 0)
-	{
-		Scanner = Memcury::Scanner::FindPattern("FF 97 ? ? ? ? 48 8B 6C 24");
-
-		if (Scanner.Get() == 0)
-		{
-			Scanner = Memcury::Scanner::FindPattern("FF 95 ? ? ? ? 48 8B 6C 24", true);
-		}
-	}
-
-	if (Scanner.Get() != 0)
-		return false;
-
-	Addresses::MemberOffsets::UFunction__Func = *Scanner.AbsoluteOffset(2).GetAs<int*>();
 	Addresses::MemberOffsets::UStruct__SuperStruct = SDK::UE::GetEngineVersion() >= 4.22 ? 0x40 : 0x30;
 	Addresses::MemberOffsets::UStruct_Children = Addresses::MemberOffsets::UStruct__SuperStruct + 0x8;
 	Addresses::MemberOffsets::UStruct_MinAllignment = Addresses::MemberOffsets::UStruct_Children + 0xC;
@@ -148,11 +132,22 @@ bool SDK::Init()
 		std::cout << "Failed to initalize GObjects" << std::endl;
 		return false;
 	}
-	if (!InitMemberOffsets())
+	Memcury::Scanner Scanner = Memcury::Scanner::FindPattern("FF 95 ? ? ? ? 48 8B 6C 24");
+
+	if (Scanner.Get() == 0)
 	{
-		std::cout << "Failed to initalize MemberOffsets" << std::endl;
-		return false;
+		Scanner = Memcury::Scanner::FindPattern("FF 97 ? ? ? ? 48 8B 6C 24");
+
+		if (Scanner.Get() == 0)
+		{
+			Scanner = Memcury::Scanner::FindPattern("FF 95 ? ? ? ? 48 8B 6C 24", true);
+		}
 	}
+
+	if (Scanner.Get() == 0)
+		return false;
+
+	Addresses::MemberOffsets::UFunction__Func = *Scanner.AbsoluteOffset(2).GetAs<int*>();
 	if (!InitFName())
 	{
 		std::cout << "Failed to initalize FName" << std::endl;
@@ -163,6 +158,12 @@ bool SDK::Init()
 		std::cout << "Failed to initalize EngineVersion" << std::endl;
 		return false;
 	}
+	if (!InitMemberOffsets())
+	{
+		std::cout << "Failed to initalize MemberOffsets" << std::endl;
+		return false;
+	}
+
 	if (!InitProcessEvent())
 	{
 		std::cout << "Failed to initalize ProcessEvent" << std::endl;

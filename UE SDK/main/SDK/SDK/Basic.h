@@ -226,7 +226,7 @@ namespace SDK
 		UProperty* PostConstructLink() const;
 
 	public:
-		UProperty* FindPropertyByName(std::string PropertyName);
+		UProperty* FindPropertyByName(std::string PropertyName, bool bUseNext = false);
 		UFunction* FindFunctionByName(std::string FunctionName);
 	};
 
@@ -613,6 +613,47 @@ namespace SDK
 		UObject* FindObjectFast(std::string Name);
 	};
 
+	struct FSoftObjectPath
+	{
+	public:
+		FName AssetPathName;
+		FString SubPathString;
+	public:
+		static UClass* GetStructClass();
+	};
+
+	class FWeakObjectPtr
+	{
+	public:
+		int32                                         ObjectIndex;
+		int32                                         ObjectSerialNumber;
+	};
+
+	template<typename TObjectId>
+	class TPersistentObjectPtr
+	{
+	public:
+		FWeakObjectPtr                                WeakPtr;
+		int32                                         TagAtLastTest;
+		TObjectId                                     ObjectID;
+	};
+
+	class FSoftObjectPtr : public TPersistentObjectPtr<FSoftObjectPath>
+	{
+	};
+
+	template<typename UEType>
+	class TSoftObjectPtr : public FSoftObjectPtr
+	{
+	public:
+	};
+
+	template<typename UEType>
+	class TSoftClassPtr : public FSoftObjectPtr
+	{
+	public:
+	};
+
 	template <typename T = UObject*>
 	T GET_PROPERTY_VALUE(SDK::UObject* Object, const char* PropertyName)
 	{
@@ -640,6 +681,64 @@ namespace SDK
 		}
 
 		return *reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(Object) + Offset);
+	}
+
+	template <typename T = UObject*>
+	T GET_PROPERTY_OFFSET(SDK::UObject* Object, const char* PropertyName)
+	{
+		static std::unordered_map<std::string, int> OffsetCache;
+
+		if (!Object) return T();
+
+		std::string Key = Object->GetClass()->GetName().ToString() + "::" + PropertyName;
+
+		int Offset = -1;
+		auto It = OffsetCache.find(Key);
+		if (It != OffsetCache.end())
+		{
+			Offset = It->second;
+		}
+		else
+		{
+			auto Property = Object->GetClass()->FindPropertyByName(PropertyName);
+			if (!Property) return T();
+
+			Offset = Property->Offset_Internal();
+			if (Offset <= 0) return T();
+
+			OffsetCache[Key] = Offset;
+		}
+
+		return *reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(Object) + Offset);
+	}
+
+	template <typename V>
+	int GET_PROPERTYSTRUCT_OFFSET(V* Object, const char* PropertyName)
+	{
+		static std::unordered_map<std::string, int> OffsetCache;
+
+		if (!Object) return 0;
+
+		std::string Key = Object->GetScriptClass()->GetName().ToString() + "::" + PropertyName;
+
+		int Offset = -1;
+		auto It = OffsetCache.find(Key);
+		if (It != OffsetCache.end())
+		{
+			Offset = It->second;
+		}
+		else
+		{
+			auto Property = Object->GetScriptClass()->FindPropertyByName(PropertyName,true);
+			if (!Property) return 0;
+
+			Offset = Property->Offset_Internal();
+			if (Offset <= 0) return 0;
+
+			OffsetCache[Key] = Offset;
+		}
+
+		return Offset;
 	}
 }
 

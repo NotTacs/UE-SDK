@@ -147,9 +147,27 @@ std::string SDK::UProperty::GetPropName()
 	return SDK::UE::GetFortniteVersion() >= 12.1 ? (*(FName*)(__int64(this) + 0x28)).ToString().ToString() : GetName().ToString();
 }
 
-SDK::UProperty* SDK::UStruct::FindPropertyByName(std::string PropertyName)
+SDK::UProperty* SDK::UStruct::FindPropertyByName(std::string PropertyName, bool bUseNext)
 {
 	UProperty* result = nullptr;
+	if (bUseNext)
+	{
+		for (const UStruct* Class = this; Class; Class = Class->SuperStruct())
+		{
+			for (UField* Next = Class->Children(); Next != nullptr; Next = Next->Next())
+			{
+				if (!Next->GetClass()) continue;
+				if (Next->GetClass() == SDK::UE::Core::GObjects->FindObjectFast("Function")) continue;
+				if (Next->GetName() == PropertyName)
+				{
+					result = reinterpret_cast<UProperty*>(Next);
+				}
+			}
+		}
+
+		return result;
+	}
+
 	result = this->PropertyLink();
 	if (!result)
 	{
@@ -285,3 +303,14 @@ bool SDK::UBoolProperty::ReadBitFieldValue(UObject* Object)
 
 	return false;
 }
+
+SDK::UClass* SDK::FSoftObjectPath::GetStructClass()
+{
+	static UClass* Class = nullptr;
+	if (!Class)
+		Class = reinterpret_cast<UClass*>(SDK::UE::Core::GObjects->FindObjectFast("SoftObjectPath"));
+	return Class;
+}
+
+
+

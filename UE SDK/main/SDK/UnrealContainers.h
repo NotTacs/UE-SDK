@@ -41,7 +41,6 @@ namespace UC
 	FORCEINLINE int32_t DefaultCalculateSlackReserve(int32_t NumElements, size_t BytesPerElement, bool bAllowQuantize, uint32_t Alignment = 8)
 	{
 		int32_t Retval = NumElements;
-		if (NumElements > 0) return 0;
 		if (bAllowQuantize)
 		{
 			Retval = int32_t(DefaultQuantizeSize(size_t(Retval) * size_t(BytesPerElement), Alignment) / BytesPerElement);
@@ -51,6 +50,8 @@ namespace UC
 				Retval = INT32_MAX;
 			}
 		}
+
+		std::cout << "RetVal: " << Retval << std::endl;
 
 		return Retval;
 	}
@@ -97,6 +98,8 @@ namespace UC
 		{
 			Retval = INT32_MAX;
 		}
+
+		std::cout << "Retval: " << Retval << std::endl;
 
 		return Retval;
 	}
@@ -377,7 +380,15 @@ namespace UC
 			}
 		}
 
-		FORCEINLINE int32 Emplace(InElementType&& Item)
+		FORCEINLINE int32 Emplace(InElementType& Item)
+		{
+			const int32 Index = AddUnitalized(1);
+			Data[Index] = Item;
+
+			return Index;
+		}
+
+		FORCEINLINE int32 Emplace(const InElementType& Item)
 		{
 			const int32 Index = AddUnitalized(1);
 			Data[Index] = Item;
@@ -392,7 +403,7 @@ namespace UC
 			return Data[Index];
 		}
 
-		FORCEINLINE int32 Add(InElementType&& Item)
+		FORCEINLINE int32 Add(InElementType& Item)
 		{
 			if (&Item)
 				return Emplace(Item);
@@ -401,7 +412,7 @@ namespace UC
 		FORCEINLINE int32 Add(const ElementType& Item)
 		{
 			if (&Item)
-				return Emplace(Item);
+				return Emplace(&Item);
 		}
 
 		FORCEINLINE ElementType& Add_GetRef(ElementType&& Item)
