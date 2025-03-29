@@ -51,8 +51,6 @@ namespace UC
 			}
 		}
 
-		std::cout << "RetVal: " << Retval << std::endl;
-
 		return Retval;
 	}
 
@@ -98,8 +96,6 @@ namespace UC
 		{
 			Retval = INT32_MAX;
 		}
-
-		std::cout << "Retval: " << Retval << std::endl;
 
 		return Retval;
 	}
@@ -570,7 +566,7 @@ namespace UC
 		{
 			return this->ToWideString() == Other;
 		}
-		bool operator==(FString & Other)
+		bool operator==(FString& Other)
 		{
 			return this->Data.Data == Other.Data.Data;
 		}

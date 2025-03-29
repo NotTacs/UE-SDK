@@ -56,7 +56,7 @@ bool SDK::InitMemberOffsets()
 	Addresses::MemberOffsets::UStruct_DestructorLink = Addresses::MemberOffsets::UStruct_RefLink + 0x8;
 	Addresses::MemberOffsets::UStruct_PostConstructLink = Addresses::MemberOffsets::UStruct_DestructorLink + 0x8;
 	Addresses::MemberOffsets::UStruct_ScriptObjectReferences = Addresses::MemberOffsets::UStruct_PostConstructLink + 0x8;
-	Addresses::MemberOffsets::UProperty__Offset_Internal = SDK::UE::GetFortniteVersion() >= 12.10 && std::floor(SDK::UE::GetFortniteVersion()) > 20 ? 0x4C : 0x44;
+	Addresses::MemberOffsets::UProperty__Offset_Internal = SDK::UE::GetFortniteVersion() >= 12.10 && std::floor(SDK::UE::GetFortniteVersion()) < 20 ? 0x4C : 0x44;
 
 	return true;
 }
@@ -120,7 +120,9 @@ bool SDK::InitProcessEvent()
 		SDK::Addresses::UObject__ProcessEvent = Scanner.ScanFor({ 0x40, 0x55 }, false).Get();
 	}
 	else
+	{
 		return false;
+	}
 
 	return true;
 }
