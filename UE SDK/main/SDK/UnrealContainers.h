@@ -479,6 +479,61 @@ namespace UC
 		}
 	};
 
+	struct FSparseArrayAllocationInfo
+	{
+		int32 Index;
+		void* Pointer;
+	};
+
+	template<typename ElementType>
+	class TSparseArray;
+
+	/** Allocated elements are overlapped with free element info in the element list. */
+	template<typename ElementType>
+	union TSparseArrayElementOrFreeListLink
+	{
+		/** If the element is allocated, its value is stored here. */
+		ElementType ElementData;
+
+		struct
+		{
+			/** If the element isn't allocated, this is a link to the previous element in the array's free list. */
+			int32 PrevFreeIndex;
+
+			/** If the element isn't allocated, this is a link to the next element in the array's free list. */
+			int32 NextFreeIndex;
+		};
+	};
+
+	template<typename AllocatorType>
+	class TBitArray
+	{
+	private:
+		AllocatorType AllocatorInstance;
+		int32         NumBits;
+		int32         MaxBits;
+	};
+
+	/*Basically Advanced TArray and is used a lot more than TArray*/
+	template<typename InElementType>
+	class TSparseArray
+	{
+		using ElementType = InElementType;
+
+	public:
+		constexpr static bool bHasIntrusiveUnsetOptionalState = true;
+		using IntrusiveUnsetOptionalStateType = TSparseArray; //Not 100% if these are actually in builds or not
+
+		typedef TSparseArrayElementOrFreeListLink<
+			TAlignedBytes<sizeof(ElementType), alignof(ElementType)>
+		> FElementOrFreeListLink;
+
+		typedef TArray<FElementOrFreeListLink> DataType;
+		DataType Data;
+
+
+	};
+
 	class FString
 	{
 
