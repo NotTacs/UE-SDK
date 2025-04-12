@@ -152,8 +152,7 @@ SDK::int32 SDK::UProperty::Offset_Internal()
 
 SDK::UProperty* SDK::UProperty::PropertyLinkNext()
 {
-	static int NumToIncrease = 0xC;
-	static int PropertyLinkNext = SDK::Addresses::MemberOffsets::UProperty__Offset_Internal + NumToIncrease;
+	static int PropertyLinkNext = SDK::Addresses::MemberOffsets::UProperty__Offset_Internal + 12;
 	return *reinterpret_cast<UProperty**>(__int64(this) + PropertyLinkNext);
 }
 
