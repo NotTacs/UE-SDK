@@ -8,7 +8,7 @@ SDK::UField* SDK::UField::Next()
 
 	if (NextAddress == -1)
 	{
-		NextAddress = SDK::UE::GetFortniteVersion() >= 12.1 ? 0x20 : 0x28;
+		NextAddress = 0x28;
 	}
 
 	return *reinterpret_cast<UField**>(__int64(this) + NextAddress);

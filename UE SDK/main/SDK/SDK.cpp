@@ -67,7 +67,7 @@ bool SDK::InitFName()
 
 	if (Scanner.Get() == 0)
 	{
-		Scanner = Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 78 ? ? 0F 84 ? ? ? ? 4C 8B 30", true);
+		Scanner = Memcury::Scanner::FindStringRef(L"Material: '%s'").ScanFor({ 0xE8 }, false);
 	}
 
 	if (Scanner.Get() != 0)
@@ -114,6 +114,11 @@ bool SDK::SetupEngineVersion()
 bool SDK::InitProcessEvent()
 {
 	Memcury::Scanner Scanner = Memcury::Scanner::FindPattern("41 FF 92 ? ? ? ? F6 C3", true);
+
+	if (SDK::UE::GetFortniteVersion() >= 19.1) //idk mate
+	{
+		Scanner = Memcury::Scanner::FindPattern("41 FF 92 ? ? ? ? E9 ? ? ? ? 49 8B C8", true);
+	}
 
 	if (Scanner.Get())
 	{
@@ -244,3 +249,4 @@ int SDK::UE::GetFortniteCL()
 
 	return std::stoi(ParsedString);
 }
+

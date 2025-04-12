@@ -823,8 +823,6 @@ namespace Memcury
                     }
                 }
             }
-
-            printf("Pattern: ", string);
             MemcuryAssertM(add != 0, "FindStringRef return nullptr");
 
             return Scanner(add);

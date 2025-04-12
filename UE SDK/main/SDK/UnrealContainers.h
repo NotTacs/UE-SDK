@@ -514,25 +514,7 @@ namespace UC
 		int32         MaxBits;
 	};
 
-	/*Basically Advanced TArray and is used a lot more than TArray*/
-	template<typename InElementType>
-	class TSparseArray
-	{
-		using ElementType = InElementType;
-
-	public:
-		constexpr static bool bHasIntrusiveUnsetOptionalState = true;
-		using IntrusiveUnsetOptionalStateType = TSparseArray; //Not 100% if these are actually in builds or not
-
-		typedef TSparseArrayElementOrFreeListLink<
-			TAlignedBytes<sizeof(ElementType), alignof(ElementType)>
-		> FElementOrFreeListLink;
-
-		typedef TArray<FElementOrFreeListLink> DataType;
-		DataType Data;
-
-
-	};
+	/*fuck that for now*/
 
 	class FString
 	{
