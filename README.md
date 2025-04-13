@@ -1,5 +1,5 @@
 # UE SDK
- A basic attempt at a universal unreal sdk for fortnite. Will be probably updated soon.
+This will most likely become deprecated as the Library Version is easier to update.
 
 # Library Version
 https://github.com/NotTacs/UESDK-Lib
